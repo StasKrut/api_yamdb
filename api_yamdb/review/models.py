@@ -57,8 +57,9 @@ class Title(models.Model):
         null=True,
         blank=True
     )
-    genre = models.ManyToManyField(
+    genre = models.OneToOneField(
         Genre,
+        on_delete=models.CASCADE,
         related_name='titles',
         verbose_name='жанр'
     )

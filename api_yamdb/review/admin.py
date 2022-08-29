@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Category, Comment, Genre, Title
+from .models import Category, Genre, Title
 
 
 @admin.register(Category)
@@ -11,19 +11,6 @@ class CategoryAdmin(admin.ModelAdmin):
     )
     search_fields = ('name',)
     list_filter = ('name',)
-    empty_value_display = '-пусто-'
-
-
-@admin.register(Comment)
-class CommentAdmin(admin.ModelAdmin):
-    list_display = (
-        'review',
-        'text',
-        'author',
-        'pub_date',
-    )
-    search_fields = ('review',)
-    list_filter = ('review',)
     empty_value_display = '-пусто-'
 
 
