@@ -29,12 +29,12 @@ class User(AbstractUser):
 
 
 class Review(models.Model):
-    # title = models.ForeignKey(
-    # Title,
-    # on_delete=models.CASCADE,
-    # related_name='reviews',
-    # verbose_name='Произведение'
-    # )
+    title = models.ForeignKey(
+        Title,
+        on_delete=models.CASCADE,
+        related_name='reviews',
+        verbose_name='Произведение'
+    )
     text = models.TextField()
     author = models.ForeignKey(
         User,
@@ -60,4 +60,3 @@ class Review(models.Model):
 
     def __str__(self):
         return f'{self.title}, {self.score}, {self.author}'
-

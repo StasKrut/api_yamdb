@@ -8,19 +8,22 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from rest_framework.generics import get_object_or_404
 from django.db import IntegrityError
 from django.contrib.auth.hashers import make_password
 from django.core.mail import EmailMessage
 
-from .models import User
+from .models import User, Review, Title
 from .serializers import (
     MyTokenObtainPairSerializer,
     SendEmailSerializer,
     UsersSerializer,
+    ReviewSerializer,
 )
 from .permissions import (
     IsAdminOrReadOnly,
-    IsOwner
+    IsOwner,
+    IsAuthorOrReadOnly
 )
 
 
@@ -52,7 +55,7 @@ class SendEmailViewSet(viewsets.ModelViewSet):
         user.confirmation_code = confirmation_code
         user.password = make_password(confirmation_code)
         user.save()
-        email = EmailMessage('YAMDB confirmation code: ', confirmation_code,
+        email = EmailMessage('Yamdb проверочный код: ', confirmation_code,
                              to=[user_email, ])
         email.send()
 
@@ -92,3 +95,46 @@ class UsersViewSet(viewsets.ModelViewSet):
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class ReviewViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthorOrReadOnly,)
+    serializer_class = ReviewSerializer
+
+
+def get_queryset(self):
+    title_id = self.kwargs.get('title_id')
+    new_queryset = Review.objects.filter(title=title_id)
+    return new_queryset
+
+
+def perform_create(self, serializer):
+    author = self.request.user
+    text = self.request.data.get('text')
+    title_id = self.kwargs.get('title_id')
+    title = get_object_or_404(Title, id=title_id)
+    reviews = Review.objects.filter(author=author, title=title)
+    if reviews.count() > 0:
+        return True
+    serializer.save(title=title, author=author, text=text)
+
+
+def create(self, request, *args, **kwargs):
+    serializer = self.get_serializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    not_create_success = self.perform_create(serializer)
+    headers = self.get_success_headers(serializer.data)
+
+    if not_create_success:
+        return Response(
+            serializer.data,
+            status=status.HTTP_400_BAD_REQUEST,
+            headers=headers
+        )
+    else:
+        return Response(
+            serializer.data,
+            status=status.HTTP_201_CREATED,
+            headers=headers
+        )
+
