@@ -39,7 +39,7 @@ class TitleAdmin(admin.ModelAdmin):
     empty_value_display = '-пусто-'
 
 
-@admin.register(#Comment)
+"""@admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
     list_display = (
         'review',
@@ -49,4 +49,4 @@ class CommentAdmin(admin.ModelAdmin):
     )
     search_fields = ('review',)
     list_filter = ('review',)
-    empty_value_display = '-пусто-'
+    empty_value_display = '-пусто-'"""
