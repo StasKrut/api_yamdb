@@ -4,16 +4,16 @@ import string
 from api.filters import TitleFilter
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.tokens import default_token_generator
-from django.core.mail import EmailMessage
+from django.core.mail import send_mail
 from django.db import IntegrityError
 from django.db.models import Avg
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, viewsets
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.filters import SearchFilter
 from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -29,38 +29,26 @@ from .serializers import (CategorySerializer, CommentSerializer,
                           UsersSerializer)
 
 
-def generate_code():
-    code_letters = string.ascii_uppercase
-    code = ''.join(random.choice(code_letters) for i in range(9))
-    return code
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def register(request):
+    serializer = SendEmailSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+    user = get_object_or_404(
+        User,
+        username=serializer.validated_data['username']
+    )
+    confirmation_code = default_token_generator.make_token(user)
+    send_mail(
+        subject='YaMDb registration',
+        message=f'Yamdb confirmation_code: {confirmation_code}',
+        from_email=None,
+        recipient_list=[user.email],
+    )
 
-
-class SendEmailViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = SendEmailSerializer
-
-    def perform_create(self, serializer):
-
-        try:
-            user = User.objects.create_user(
-                email=self.request.data.get('email'),
-                username=self.request.data.get('email').partition("@")[0],
-            )
-        except IntegrityError:
-            User.objects.get(email=self.request.data.get('email')).delete()
-            user = User.objects.create_user(
-                email=self.request.data.get('email'),
-                username=self.request.data.get('email').partition("@")[0],
-            )
-        confirmation_code = default_token_generator.make_token(user)
-        user_email = user.email
-        user.confirmation_code = confirmation_code
-        user.password = make_password(confirmation_code)
-        user.save()
-        email = EmailMessage('Yamdb проверочный код: ', confirmation_code,
-                             to=[user_email, ])
-        email.send()
-
+    return Response(serializer.data, status=status.HTTP_200_OK)
+ 
 
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
