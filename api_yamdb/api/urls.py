@@ -4,7 +4,7 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 from .views import (
-    SendEmailViewSet, MyTokenObtainPairView,
+    register, MyTokenObtainPairView,
     UsersViewSet, ReviewViewSet
 )
 
@@ -12,7 +12,6 @@ from .views import (
 app_name = 'api'
 
 router = DefaultRouter()
-router.register('auth/email', SendEmailViewSet)
 router.register('users', UsersViewSet)
 router.register(
     r'titles/(?P<title_id>\d+)/reviews',
@@ -30,4 +29,5 @@ urlpatterns = [
         'v1/auth/token/refresh/', TokenRefreshView.as_view(),
         name='token_refresh'
     ),
+    path('v1/auth/signup/', register, name='register'),
 ]
