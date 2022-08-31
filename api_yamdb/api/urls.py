@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from .views import (CategoryViewSet, CommentViewSet, GenreViewSet,
-                    MyTokenObtainPairView, ReviewViewSet, register,
+                    get_token, ReviewViewSet, register,
                     TitleViewSet, UsersViewSet)
 
 app_name = 'api'
@@ -39,7 +39,7 @@ urlpatterns = [
     path('', include(router.urls), name='api-root'),
     path('v1/', include(router.urls)),
     path(
-        'v1/auth/token/', MyTokenObtainPairView.as_view(),
+        'v1/auth/token/', get_token,
         name='token'
     ),
     path(

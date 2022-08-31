@@ -134,7 +134,7 @@ class Review(models.Model):
     class Meta:
         ordering = ('-pub_date',)
         verbose_name = 'Ревью'
-        verbose_name_plural = 'Ревьюшечки'
+        verbose_name_plural = 'Ревью'
 
     def __str__(self):
         return f'{self.title}, {self.score}, {self.author}'
