@@ -30,12 +30,25 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 
 class SendEmailSerializer(serializers.ModelSerializer):
-    email = serializers.CharField(max_length=None, min_length=None,
-                                  allow_blank=False)
+    username = serializers.CharField(
+        validators=[
+            UniqueValidator(queryset=User.objects.all())
+        ]
+    )
+    email = serializers.EmailField(
+        validators=[
+            UniqueValidator(queryset=User.objects.all())
+        ]
+    )
+
+    def validate_username(self, value):
+        if value.lower() == 'me':
+            raise serializers.ValidationError('Username "me" is not valid')
+        return value
 
     class Meta:
+        fields = ('username', 'email')
         model = User
-        fields = ('email',)
 
 
 class UsersSerializer(serializers.ModelSerializer):
