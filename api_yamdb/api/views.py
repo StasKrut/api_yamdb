@@ -1,16 +1,10 @@
-import random
-import string
-
 from api.filters import TitleFilter
-from django.contrib.auth.hashers import make_password
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
-from django.db import IntegrityError
 from django.db.models import Avg
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
-from rest_framework.exceptions import PermissionDenied
 from rest_framework.filters import SearchFilter
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -18,12 +12,11 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework.pagination import PageNumberPagination
-from reviews.models import Category, Genre, Review, Title, User
 
+from reviews.models import Category, Genre, Review, Title, User
 from .mixins import ModelMixinSet
-from .permissions import (AdminModeratorAuthorPermission, IsAdminOrReadOnly,
-                          IsAdminUserOrReadOnly, IsAuthorOrReadOnly, IsOwner,
-                          IsAdmin)
+from .permissions import (AdminModeratorAuthorPermission,
+                          IsAdminUserOrReadOnly, IsAdmin)
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, TokenSerializer,
                           ReviewSerializer, SendEmailSerializer,
@@ -163,7 +156,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthorOrReadOnly,)
+    permission_classes = (AdminModeratorAuthorPermission,)
     serializer_class = ReviewSerializer
     pagination_class = PageNumberPagination
 
