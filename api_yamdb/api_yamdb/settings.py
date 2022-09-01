@@ -17,13 +17,14 @@ ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
     'api.apps.ApiConfig',
-    'review.apps.ReviewConfig',
+    'reviews.apps.ReviewConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_rename_app',
     'django_filters',
     'rest_framework',
 ]
@@ -107,7 +108,7 @@ STATIC_URL = '/static/'
 
 STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static/'),)
 
-AUTH_USER_MODEL = 'review.User'
+AUTH_USER_MODEL = 'reviews.User'
 
 #  подключаем движок filebased.EmailBackend
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
@@ -122,6 +123,9 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.'
+                                'PageNumberPagination',
+    "PAGE_SIZE": 10,
 }
 
 SIMPLE_JWT = {

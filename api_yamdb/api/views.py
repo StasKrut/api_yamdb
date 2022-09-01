@@ -17,16 +17,18 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import AccessToken
-from review.models import Category, Genre, Review, Title, User
+from rest_framework.pagination import PageNumberPagination
+from reviews.models import Category, Genre, Review, Title, User
 
 from .mixins import ModelMixinSet
 from .permissions import (AdminModeratorAuthorPermission, IsAdminOrReadOnly,
-                          IsAdminUserOrReadOnly, IsAuthorOrReadOnly, IsOwner)
+                          IsAdminUserOrReadOnly, IsAuthorOrReadOnly, IsOwner,
+                          IsAdmin)
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, TokenSerializer,
                           ReviewSerializer, SendEmailSerializer,
                           TitleReadSerializer, TitleWriteSerializer,
-                          UsersSerializer)
+                          UsersSerializer, UserEditSerializer)
 
 
 @api_view(['POST'])
@@ -72,34 +74,37 @@ def get_token(request):
 class UsersViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UsersSerializer
-    permission_classes = (IsAdminOrReadOnly, IsAuthenticated, IsOwner)
+    permission_classes = (IsAdmin,)
     filter_backends = [filters.SearchFilter]
     search_fields = ('username',)
     lookup_field = 'username'
+    pagination_class = PageNumberPagination
 
-    def perform_create(self, serializer):
-        serializer.save()
-
-    def get_queryset(self):
-        user = self.request.user
-        allow_all = user.is_superuser or user.is_staff
-        if self.action == 'list' and not allow_all:
-            raise PermissionDenied('ERROR: Access denied')
-        return User.objects.all()
-
-    @action(detail=False, methods=['GET', 'PATCH'], url_path='me',
-            permission_classes=(IsOwner, IsAuthenticated,))
-    def get_or_update_user(self, request):
-        himself = User.objects.get(username=self.request.user)
-        if request.method == 'GET':
-            serializer = self.get_serializer(himself)
-            return Response(serializer.data)
-        if request.method == 'PATCH':
-            serializer = self.get_serializer(himself, data=request.data,
-                                             partial=True)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_200_OK)
+    @action(
+        methods=[
+            "get",
+            "patch",
+        ],
+        detail=False,
+        url_path="me",
+        permission_classes=[IsAuthenticated],
+        serializer_class=UserEditSerializer,
+    )
+    def users_own_profile(self, request):
+        user = request.user
+        if request.method == "GET":
+            serializer = self.get_serializer(user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        if request.method == "PATCH":
+            serializer = self.get_serializer(
+                user,
+                data=request.data,
+                partial=True
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 class CategoryViewSet(ModelMixinSet):
@@ -160,6 +165,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 class ReviewViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthorOrReadOnly,)
     serializer_class = ReviewSerializer
+    pagination_class = PageNumberPagination
 
     def get_queryset(self):
         title_id = self.kwargs.get('title_id')

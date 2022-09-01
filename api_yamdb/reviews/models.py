@@ -29,6 +29,26 @@ class User(AbstractUser):
         verbose_name='Проверочный код'
     )
 
+    @property
+    def is_moderator(self):
+        return self.role == self.MODERATOR
+
+    @property
+    def is_admin(self):
+        return self.role == self.ADMIN
+
+    class Meta:
+        ordering = ['id']
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
+
+        constraints = [
+            models.CheckConstraint(
+                check=~models.Q(username__iexact="me"),
+                name="username_is_not_me"
+            )
+        ]
+
 
 class Category(models.Model):
     name = models.CharField(
@@ -135,6 +155,12 @@ class Review(models.Model):
         ordering = ('-pub_date',)
         verbose_name = 'Ревью'
         verbose_name_plural = 'Ревью'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['title', 'author'],
+                name='unique_review'
+            ),
+        ]
 
     def __str__(self):
         return f'{self.title}, {self.score}, {self.author}'
