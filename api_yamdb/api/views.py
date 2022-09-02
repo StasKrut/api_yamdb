@@ -107,30 +107,27 @@ class CategoryViewSet(ModelMixinSet):
     filter_backends = (SearchFilter, )
     search_fields = ('name', )
     lookup_field = 'slug'
+    pagination_class = PageNumberPagination
 
 
 class GenreViewSet(ModelMixinSet):
-    """
-    Получить список всех жанров. Права доступа: Доступно без токена
-    """
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = (IsAdminUserOrReadOnly,)
     filter_backends = (SearchFilter,)
     search_fields = ('name', )
     lookup_field = 'slug'
+    pagination_class = PageNumberPagination
 
 
 class TitleViewSet(ModelViewSet):
-    """
-    Получить список всех объектов. Права доступа: Доступно без токена
-    """
     queryset = Title.objects.annotate(
         rating=Avg('reviews__score')
-    ).all()
+    ).order_by('id')
     permission_classes = (IsAdminUserOrReadOnly,)
     filter_backends = (DjangoFilterBackend, )
     filterset_class = TitleFilter
+    pagination_class = PageNumberPagination
 
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve'):
@@ -141,6 +138,7 @@ class TitleViewSet(ModelViewSet):
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     permission_classes = (AdminModeratorAuthorPermission,)
+    pagination_class = PageNumberPagination
 
     def get_queryset(self):
         review = get_object_or_404(
