@@ -136,3 +136,7 @@ SIMPLE_JWT = {
 }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
+DOMAIN_NAME = 'yamdb.com'
+
+EMAIL_FROM = f'admin@{DOMAIN_NAME}'

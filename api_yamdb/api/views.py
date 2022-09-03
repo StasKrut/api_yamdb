@@ -23,6 +23,8 @@ from .serializers import (CategorySerializer, CommentSerializer,
                           TitleWriteSerializer, TokenSerializer,
                           UserEditSerializer, UsersSerializer)
 
+from django.conf import settings
+
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -38,7 +40,7 @@ def register(request):
     send_mail(
         subject='YaMDb registration',
         message=f'Yamdb код подтверждения: {confirmation_code}',
-        from_email=None,
+        from_email=settings.EMAIL_FROM,
         recipient_list=[user.email],
     )
 
@@ -158,34 +160,10 @@ class ReviewViewSet(viewsets.ModelViewSet):
     pagination_class = PageNumberPagination
 
     def get_queryset(self):
-        title_id = self.kwargs.get('title_id')
-        return Review.objects.filter(title=title_id)
+        title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
+        return title.reviews.all()
 
     def perform_create(self, serializer):
-        author = self.request.user
-        text = self.request.data.get('text')
         title_id = self.kwargs.get('title_id')
         title = get_object_or_404(Title, id=title_id)
-        reviews = Review.objects.filter(author=author, title=title)
-        if reviews.count() > 0:
-            return True
-        serializer.save(title=title, author=author, text=text)
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        not_create_success = self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-
-        if not_create_success:
-            return Response(
-                serializer.data,
-                status=status.HTTP_400_BAD_REQUEST,
-                headers=headers
-            )
-        else:
-            return Response(
-                serializer.data,
-                status=status.HTTP_201_CREATED,
-                headers=headers
-            )
+        serializer.save(title=title, author=self.request.user)
