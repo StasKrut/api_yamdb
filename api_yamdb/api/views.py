@@ -1,4 +1,3 @@
-from api.filters import TitleFilter
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db.models import Avg
@@ -14,6 +13,7 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import AccessToken
 from reviews.models import Category, Genre, Review, Title, User
 
+from .filters import TitleFilter
 from .mixins import ModelMixinSet
 from .permissions import (AdminModeratorAuthorPermission, IsAdmin,
                           IsAdminUserOrReadOnly)
@@ -84,13 +84,12 @@ class UsersViewSet(viewsets.ModelViewSet):
         serializer_class=UserEditSerializer,
     )
     def users_own_profile(self, request):
-        user = request.user
         if request.method == "GET":
-            serializer = self.get_serializer(user)
+            serializer = self.get_serializer(request.user)
             return Response(serializer.data, status=status.HTTP_200_OK)
         if request.method == "PATCH":
             serializer = self.get_serializer(
-                user,
+                request.user,
                 data=request.data,
                 partial=True
             )
@@ -160,8 +159,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         title_id = self.kwargs.get('title_id')
-        new_queryset = Review.objects.filter(title=title_id)
-        return new_queryset
+        return Review.objects.filter(title=title_id)
 
     def perform_create(self, serializer):
         author = self.request.user
