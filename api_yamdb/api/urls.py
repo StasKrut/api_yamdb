@@ -36,5 +36,5 @@ router.register(
 urlpatterns = [
     path('', include(router.urls), name='api-root'),
     path('v1/', include(router.urls)),
-    path('v1/auth/', include('reviews.urls')),
+    path('v1/', include('api.v1.urls')),
 ]
