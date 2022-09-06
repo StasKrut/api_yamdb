@@ -13,15 +13,16 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import AccessToken
 from reviews.models import Category, Genre, Review, Title, User
 
-from .filters import TitleFilter
-from .mixins import ModelMixinSet
-from .permissions import (AdminModeratorAuthorPermission, IsAdmin,
-                          IsAdminUserOrReadOnly)
-from .serializers import (CategorySerializer, CommentSerializer,
-                          GenreSerializer, ReviewSerializer,
-                          SendEmailSerializer, TitleReadSerializer,
-                          TitleWriteSerializer, TokenSerializer,
-                          UserEditSerializer, UsersSerializer)
+from api.filters import TitleFilter
+from api.mixins import ModelMixinSet
+from .permissions import (
+    AdminModeratorAuthorPermission, IsAdmin, IsAdminUserOrReadOnly
+)
+from .serializers import (
+    CategorySerializer, CommentSerializer, GenreSerializer, ReviewSerializer,
+    SendEmailSerializer, TitleReadSerializer, TitleWriteSerializer,
+    TokenSerializer, UserEditSerializer, UsersSerializer
+)
 
 from django.conf import settings
 
